@@ -48,7 +48,7 @@ defmodule ExTicketUtils.Client do
 
     {params, url} = process_params(params, url, type)
 
-    headers = process_headers(creds, url)
+    headers = process_headers(creds, url, version)
 
     if options[:debug] do
       IO.inspect [
@@ -87,15 +87,21 @@ defmodule ExTicketUtils.Client do
     URI.to_string(%URI{scheme: "https", host: host, path: path})
   end
 
-  defp process_headers(creds, url) do
+  defp process_headers(creds, url, version) do
+    extras = case version do
+      "v2" -> ["X-API-Version": 2]
+      "v3" -> []
+      _ -> raise "Invalid version specified"
+    end
+
     %{api_token: api_token} = creds
     signature = encode_request(creds, url)
 
-    [
+    Keyword.merge([
       "X-Signature": signature,
       "X-Token": api_token,
       "Accept": "application/json"
-    ]
+    ], extras)
   end
 
   def encode_request(creds, url) do
