@@ -4,8 +4,11 @@ defmodule ExTicketUtils.Inventory do
   alias ExTicketUtils.Client
 
   def search(client = %Client{options: client_options}, params, options \\ []) do
-    client_options = Keyword.merge(client_options, [params: params ])
-    client_options = Keyword.merge(client_options, options)
+    client_options = client_options
+    |> Keyword.merge([params: params])
+    |> Keyword.merge([version: "v3"])
+    |> Keyword.merge(options)
+
     path = "/POS/Tickets/Search"
 
     post_request(client, path, client_options)
