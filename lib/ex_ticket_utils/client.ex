@@ -5,7 +5,7 @@ defmodule ExTicketUtils.Client do
   alias HTTPoison.Response
 
   @default_options [recv_timeout: 15000]
-  @domain Application.get_env(:ex_ticket_utils, :domain, "ticketutilssandbox.com")
+  @domain Application.get_env(:ex_ticket_utils, :domain)
 
   defstruct [:api_token, :api_secret, :options]
 
@@ -48,7 +48,7 @@ defmodule ExTicketUtils.Client do
 
     {params, url} = process_params(params, url, type)
 
-    headers = process_headers(creds, url, version)
+    headers = process_headers(creds, path, version)
 
     if options[:debug] do
       IO.inspect [
@@ -66,8 +66,8 @@ defmodule ExTicketUtils.Client do
   defp process_params(params, url, :get) do
     url = cond do
       Enum.empty?(params)  -> url
-      URI.parse(url).query                   -> url <> "&" <> URI.encode_query(params)
-      true                                   -> url <> "?" <> URI.encode_query(params)
+      URI.parse(url).query -> url <> "&" <> URI.encode_query(params)
+      true                 -> url <> "?" <> URI.encode_query(params)
     end
 
     {"", url}
@@ -78,24 +78,26 @@ defmodule ExTicketUtils.Client do
   end
 
   defp build_url(path, version) do
-    host = case version do
-      "v2" -> Enum.join(["apiv2", @domain], ".")
-      "v3" -> Enum.join(["api", @domain], ".")
-      _ -> raise "Invalid version specified"
-    end
+    case Application.get_env(:ex_ticket_utils, :url) do
+      nil ->
+        host = case version do
+          "v2" -> Enum.join(["apiv2", @domain], ".")
+          _ -> Enum.join(["api", @domain], ".")
+        end
 
-    URI.to_string(%URI{scheme: "https", host: host, path: path})
+        URI.to_string(%URI{scheme: "https", host: host, path: path})
+      url -> url
+    end
   end
 
-  defp process_headers(creds, url, version) do
+  defp process_headers(creds, path, version) do
     extras = case version do
       "v2" -> ["X-API-Version": 2]
-      "v3" -> []
-      _ -> raise "Invalid version specified"
+      _ -> []
     end
 
     %{api_token: api_token} = creds
-    signature = encode_request(creds, url)
+    signature = encode_request(creds, path)
 
     Keyword.merge([
       "X-Signature": signature,
@@ -104,11 +106,9 @@ defmodule ExTicketUtils.Client do
     ], extras)
   end
 
-  def encode_request(creds, url) do
+  def encode_request(creds, path) do
     %{api_secret: api_secret} = creds
 
-    url = URI.parse(url)
-
-    :crypto.hmac(:sha256, api_secret, url.path) |> Base.encode64
+    :crypto.hmac(:sha256, api_secret, path) |> Base.encode64
   end
 end

@@ -5,45 +5,42 @@ defmodule ExTicketUtils.ClientTest do
 
   setup do
     server = Bypass.open
-    url = "http://localhost:#{server.port}"
 
-    Application.put_env(:ex_ticket_utils, :base_url, url)
+    Application.put_env(:ex_ticket_utils, :url, "http://localhost:#{server.port}")
 
     creds = %{
-      customer_id: "12345",
-      developer_auth_token_id: "67890",
-      developer_auth_token: "54321",
-      customer_auth_token: "09876",
+      api_token: "12345",
+      api_secret: "67890",
     }
 
-    {:ok, server: server, url: url, creds: creds}
+    {:ok, server: server, creds: creds}
   end
 
   test "can create a client", %{creds: creds} do
     {:ok, client} = Client.create(creds)
 
-    assert client.customer_id == creds.customer_id
-    assert client.developer_auth_token_id == creds.developer_auth_token_id
-    assert client.developer_auth_token == creds.developer_auth_token
-    assert client.customer_auth_token == creds.customer_auth_token
+    assert client.api_token == creds.api_token
+    assert client.api_secret == creds.api_secret
   end
 
-  test "can sign requests with tokens correctly", %{server: server, url: url, creds: creds} do
-    path = "/foo"
-    signed_hash = Client.encode_request(creds, url <> path)
+  test "can sign requests with tokens correctly", %{server: server, creds: creds} do
+    path = "/foo?test=12345"
+    signed_hash = Client.encode_request(creds, path)
 
     Bypass.expect_once server, fn conn ->
       %Plug.Conn{req_headers: headers} = conn
 
-      auth_header = Enum.find headers, fn({name, _value}) -> name == "x-api-authorization" end
+      signature = Enum.find headers, fn({name, _value}) -> name == "x-signature" end
+      token = Enum.find headers, fn({name, _value}) -> name == "x-token" end
 
-      assert auth_header == {"x-api-authorization", signed_hash}
+      assert signature == {"x-signature", signed_hash}
+      assert token == {"x-token", creds[:api_token]}
 
       Plug.Conn.resp(conn, 200, "")
     end
 
     {:ok, client} = Client.create(creds)
 
-    Client.get_request(client, path, [version: "6.0"])
+    Client.get_request(client, path)
   end
 end
