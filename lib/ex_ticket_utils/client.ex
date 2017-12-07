@@ -30,7 +30,21 @@ defmodule ExTicketUtils.Client do
   defp handle_response(response) do
     case response do
       {:ok, %Response{body: body, status_code: 200}} -> Poison.decode(body)
-      {:ok, response = %Response{status_code: 400}} -> {:error, :bad_request, response}
+      {:ok, response = %Response{status_code: 400}} ->
+        case Poison.decode(response.body) do
+          {:ok, json} ->
+            message = json["Message"]
+
+            if message do
+              case Regex.match?(~r/Invalid/, message) do
+                true -> {:ok, %{"Items" => [], "Records" => 0, "TotalPages" => 1}}
+                false -> {:error, :bad_request, response}
+              end
+            else
+              {:error, :bad_request, response}
+            end
+          {:error, _reason} -> {:error, :bad_request, response}
+        end
       {:ok, response = %Response{status_code: 403}} -> {:error, :forbidden, response}
       {:ok, response = %Response{status_code: 404}} -> {:error, :not_found, response}
       {:ok, response = %Response{status_code: 500}} -> {:error, :internal_server_error, response}
@@ -41,40 +55,41 @@ defmodule ExTicketUtils.Client do
 
   defp make_request(type, creds, path, options) do
     {version, options} = Keyword.pop(options, :version, "v3")
-
-    url = build_url(path, version)
-
     {params, options} = Keyword.pop(options, :params, %{})
 
-    {params, url} = process_params(params, url, type)
+    {body, path} = process_params(params, path, type)
 
     headers = process_headers(creds, path, version)
+
+    url = build_url(path, version)
 
     if options[:debug] do
       IO.inspect [
         api_token: creds.api_token,
         api_secret: creds.api_secret,
         url: url,
-        params: params,
+        signed_path: path,
+        body: body,
         headers: headers
       ]
     end
 
-    request(type, url, params, headers, options)
+    request(type, url, body, headers, options)
   end
 
-  defp process_params(params, url, :get) do
-    url = cond do
-      Enum.empty?(params)  -> url
-      URI.parse(url).query -> url <> "&" <> URI.encode_query(params)
-      true                 -> url <> "?" <> URI.encode_query(params)
+  defp process_params(params, path, :get) do
+
+    path = cond do
+      Enum.empty?(params)  -> path
+      URI.parse(path).query -> path <> "&" <> URI.encode_query(params)
+      true                 -> path <> "?" <> URI.encode_query(params)
     end
 
-    {"", url}
+    {"", path}
   end
 
-  defp process_params(params, url, :post) do
-    {{:form, Enum.into(params, [])}, url}
+  defp process_params(params, path, :post) do
+    {{:form, Enum.into(params, [])}, path}
   end
 
   defp build_url(path, version) do
