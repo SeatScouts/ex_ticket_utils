@@ -5,7 +5,6 @@ defmodule ExTicketUtils.Client do
   alias HTTPoison.Response
 
   @default_options [recv_timeout: 15000]
-  @domain Application.get_env(:ex_ticket_utils, :domain)
 
   defstruct [:api_token, :api_secret, :options]
 
@@ -93,11 +92,13 @@ defmodule ExTicketUtils.Client do
   end
 
   defp build_url(path, version) do
+    domain = Application.get_env(:ex_ticket_utils, :domain)
+
     case Application.get_env(:ex_ticket_utils, :url) do
       nil ->
         host = case version do
-          "v2" -> Enum.join(["apiv2", @domain], ".")
-          _ -> Enum.join(["api", @domain], ".")
+          "v2" -> Enum.join(["apiv2", domain], ".")
+          _ -> Enum.join(["api", domain], ".")
         end
 
         URI.to_string(%URI{scheme: "https", host: host, path: path})

@@ -13,4 +13,5 @@ defmodule ExTicketUtils.Events do
 
     get_request(client, path, client_options)
   end
+
 end
