@@ -26,6 +26,10 @@ defmodule ExTicketUtils.Client do
     make_request(:post, creds, path, options) |> handle_response
   end
 
+  def put_request(creds, path, options \\ []) do
+    make_request(:put, creds, path, options) |> handle_response
+  end
+
   defp handle_response(response) do
     case response do
       {:ok, %Response{body: body, status_code: 200}} -> Poison.decode(body)
@@ -56,7 +60,7 @@ defmodule ExTicketUtils.Client do
     {version, options} = Keyword.pop(options, :version, "v3")
     {params, options} = Keyword.pop(options, :params, %{})
 
-    {body, path} = process_params(params, path, type)
+    {body, path} = process_params(params, type, path)
 
     headers = process_headers(creds, path, version)
 
@@ -76,7 +80,7 @@ defmodule ExTicketUtils.Client do
     request(type, url, body, headers, options)
   end
 
-  defp process_params(params, path, :get) do
+  defp process_params(params, :get, path) do
 
     path = cond do
       Enum.empty?(params)  -> path
@@ -87,8 +91,12 @@ defmodule ExTicketUtils.Client do
     {"", path}
   end
 
-  defp process_params(params, path, :post) do
+  defp process_params(params, :post, path) do
     {{:form, Enum.into(params, [])}, path}
+  end
+
+  defp process_params(params, :put, path) do
+    {Poison.encode!(params), path}
   end
 
   defp build_url(path, version) do
@@ -118,6 +126,7 @@ defmodule ExTicketUtils.Client do
     Keyword.merge([
       "X-Signature": signature,
       "X-Token": api_token,
+      "Content-Type": "application/json",
       "Accept": "application/json"
     ], extras)
   end
