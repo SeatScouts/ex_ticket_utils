@@ -17,8 +17,7 @@ defmodule ExTicketUtils.Mixfile do
     # Specify extra applications you'll use from Erlang/Elixir
     [
       extra_applications: [:logger],
-      mod: {ExTicketUtils.Application, []},
-      env: [domain: "ticketutilssandbox.com"]
+      mod: {ExTicketUtils.Application, []}
     ]
   end
 

@@ -7,8 +7,6 @@ case Mix.env do
   config :ex_ticket_utils, domain: "localhost"
  :dev ->
   config :ex_ticket_utils, domain: "ticketutilssandbox.com"
- :staging ->
-  config :ex_ticket_utils, domain: "ticketutilssandbox.com"
  _ ->
   config :ex_ticket_utils, domain: "ticketutils.com"
 end
