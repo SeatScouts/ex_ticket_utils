@@ -3,7 +3,7 @@ defmodule ExTicketUtils.Mixfile do
 
   def project do
     [app: :ex_ticket_utils,
-     version: "0.3.1",
+     version: "0.3.2",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -32,7 +32,7 @@ defmodule ExTicketUtils.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:httpoison, "~> 0.11.1"},
+      {:httpoison, "~> 0.13.0"},
       {:poison, "~> 2.0"},
       {:bypass, "~> 0.7", only: :test}
     ]
