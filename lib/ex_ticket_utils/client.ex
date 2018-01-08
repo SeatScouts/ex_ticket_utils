@@ -100,17 +100,31 @@ defmodule ExTicketUtils.Client do
   end
 
   defp build_url(path, version) do
-    domain = Application.get_env(:ex_ticket_utils, :domain)
+    url = Application.get_env(:ex_ticket_utils, :url, nil)
+    is_sandbox = Application.get_env(:ex_ticket_utils, :sandbox, true)
 
-    case Application.get_env(:ex_ticket_utils, :url) do
+    case url do
       nil ->
-        host = case version do
-          "v2" -> Enum.join(["apiv2", domain], ".")
-          _ -> Enum.join(["api", domain], ".")
+        host = case is_sandbox do
+          true ->
+            case version do
+              "v2" -> "apiv2.ticketutilssandbox.com"
+              _ -> "api.ticketutilssandbox.com"
+            end
+          false ->
+            case version do
+              "v2" -> "api.ticketutils.net"
+              _ -> "api.ticketutils.com"
+            end
         end
 
         URI.to_string(%URI{scheme: "https", host: host, path: path})
-      url -> url
+
+      url ->
+        url = url
+        |> URI.parse
+        |> Map.put(:path, path)
+        |> URI.to_string
     end
   end
 
@@ -121,6 +135,7 @@ defmodule ExTicketUtils.Client do
     end
 
     %{api_token: api_token} = creds
+
     signature = encode_request(creds, path)
 
     Keyword.merge([
