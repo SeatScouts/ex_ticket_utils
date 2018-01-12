@@ -50,6 +50,7 @@ defmodule ExTicketUtils.Client do
         end
       {:ok, response = %Response{status_code: 403}} -> {:error, :forbidden, response}
       {:ok, response = %Response{status_code: 404}} -> {:error, :not_found, response}
+      {:ok, response = %Response{status_code: 429}} -> {:error, :too_many_requests, response}
       {:ok, response = %Response{status_code: 500}} -> {:error, :internal_server_error, response}
       {:error, raw = %HTTPoison.Error{reason: reason}} -> {:error, reason, raw}
       {_, response} -> {:error, :unknown, response}
@@ -108,6 +109,7 @@ defmodule ExTicketUtils.Client do
         host = case is_sandbox do
           true ->
             case version do
+              "v1" -> "apiv2.ticketutilssandbox.com"
               "v2" -> "apiv2.ticketutilssandbox.com"
               _ -> "api.ticketutilssandbox.com"
             end
@@ -130,7 +132,9 @@ defmodule ExTicketUtils.Client do
 
   defp process_headers(creds, path, version) do
     extras = case version do
+      "v1" -> ["X-API-Version": 1]
       "v2" -> ["X-API-Version": 2]
+      "v3" -> ["X-API-Version": 3]
       _ -> []
     end
 

@@ -1,4 +1,4 @@
-defmodule ExTicketUtils.Inventory do
+defmodule ExTicketUtils.Pos.Inventory do
   import ExTicketUtils.Client, only: [put_request: 3, post_request: 3]
   import ExTicketUtils.Helpers, only: [verify_params: 2]
 

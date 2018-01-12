@@ -1,4 +1,4 @@
-defmodule ExTicketUtils.Events do
+defmodule ExTicketUtils.Pos.Events do
   import ExTicketUtils.Client, only: [get_request: 3]
   import ExTicketUtils.Helpers, only: [verify_params: 2]
 
@@ -29,16 +29,4 @@ defmodule ExTicketUtils.Events do
 
     get_request(client, path, client_options)
   end
-
-  def summary(client = %Client{options: client_options}, params, options \\ []) do
-    client_options = client_options
-    |> Keyword.merge([params: params])
-    |> Keyword.merge([version: "v3"])
-    |> Keyword.merge(options)
-
-    path = "/POS/Tickets/EventSummary"
-
-    get_request(client, path, client_options)
-  end
-
 end
