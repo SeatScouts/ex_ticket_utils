@@ -1,18 +1,28 @@
 defmodule ExTicketUtils.Pos.Inventory do
-  import ExTicketUtils.Client, only: [put_request: 3, post_request: 3]
+  import ExTicketUtils.Client, only: [put_request: 3, get_request: 3, post_request: 3]
   import ExTicketUtils.Helpers, only: [verify_params: 2]
 
   alias ExTicketUtils.Client
 
   def search(client = %Client{options: client_options}, params, options \\ []) do
+    version = Keyword.get(options, :version, "v3")
+
     client_options = client_options
     |> Keyword.merge([params: params])
-    |> Keyword.merge([version: "v3"])
     |> Keyword.merge(options)
 
-    path = "/POS/Tickets/Search"
+    case version do
+      "v2" ->
+        path = "/POS/Inventory"
 
-    post_request(client, path, client_options)
+        get_request(client, path, client_options)
+      "v3" ->
+        path = "/POS/Tickets/Search"
+
+        post_request(client, path, client_options)
+      _ -> raise "Unknown api version"
+    end
+
   end
 
   def set_broadcast(client = %Client{options: client_options}, params, options \\ []) do
