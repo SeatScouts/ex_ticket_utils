@@ -1,14 +1,11 @@
 defmodule ExTicketUtils.EventCatalog.Events do
   import ExTicketUtils.Client, only: [get_request: 3]
-  import ExTicketUtils.Helpers, only: [verify_params: 2]
+  import ExTicketUtils.Helpers, only: [merge_options: 4]
 
-  alias ExTicketUtils.Client
+  def fetch(client, params, options \\ []) do
+    version = Keyword.get(options, :version, "v1")
 
-  def fetch(client = %Client{options: client_options}, params, options \\ []) do
-    client_options = client_options
-    |> Keyword.merge([params: params])
-    |> Keyword.merge([version: "v1"])
-    |> Keyword.merge(options)
+    client_options = merge_options(client, params, version, options)
 
     path = "/EventCatalog/Events"
 

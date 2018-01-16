@@ -1,15 +1,11 @@
 defmodule ExTicketUtils.Pos.Inventory do
   import ExTicketUtils.Client, only: [put_request: 3, get_request: 3, post_request: 3]
-  import ExTicketUtils.Helpers, only: [verify_params: 2]
+  import ExTicketUtils.Helpers, only: [verify_params: 2, merge_options: 4]
 
-  alias ExTicketUtils.Client
-
-  def search(client = %Client{options: client_options}, params, options \\ []) do
+  def search(client, params, options \\ []) do
     version = Keyword.get(options, :version, "v3")
 
-    client_options = client_options
-    |> Keyword.merge([params: params])
-    |> Keyword.merge(options)
+    client_options = merge_options(client, params, version, options)
 
     case version do
       "v2" ->
@@ -25,29 +21,45 @@ defmodule ExTicketUtils.Pos.Inventory do
 
   end
 
-  def set_broadcast(client = %Client{options: client_options}, params, options \\ []) do
-    client_options = client_options
-    |> Keyword.merge([params: params])
-    |> Keyword.merge([version: "v3"])
-    |> Keyword.merge(options)
+  def set_broadcast(client, params, options \\ []) do
+    version = Keyword.get(options, :version, "v3")
 
-    path = "/POS/Tickets/BroadcastData"
+    client_options = merge_options(client, params, version, options)
 
-    put_request(client, path, client_options)
+    case version do
+      "v2" ->
+        path = "/POS/Inventory/UpdateTicket"
+
+        post_request(client, path, client_options)
+      "v3" ->
+        path = "/POS/Tickets/BroadcastData"
+
+        put_request(client, path, client_options)
+      _ -> raise "Unknown api version"
+    end
   end
 
-  def set_sell_price(client = %Client{options: client_options}, params, options \\ []) do
-    verify_params(params, ["Id"])
+  def set_sell_price(client, params, options \\ []) do
+    version = Keyword.get(options, :version, "v3")
 
-    {lot_id, params} = Map.pop(params, "Id")
+    case version do
+      "v2" ->
+        client_options = merge_options(client, params, version, options)
 
-    client_options = client_options
-    |> Keyword.merge([params: params])
-    |> Keyword.merge([version: "v3"])
-    |> Keyword.merge(options)
+        path = "/POS/Inventory/UpdateTicket"
 
-    path = "/POS/Tickets/#{lot_id}/SellPrice"
+        post_request(client, path, client_options)
+      "v3" ->
+        verify_params(params, ["Id"])
 
-    put_request(client, path, client_options)
+        {lot_id, params} = Map.pop(params, "Id")
+
+        client_options = merge_options(client, params, version, options)
+
+        path = "/POS/Tickets/#{lot_id}/SellPrice"
+
+        put_request(client, path, client_options)
+      _ -> raise "Unknown api version"
+    end
   end
 end

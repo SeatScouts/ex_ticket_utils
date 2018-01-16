@@ -4,7 +4,7 @@ defmodule ExTicketUtils.Client do
   alias ExTicketUtils.{Client}
   alias HTTPoison.Response
 
-  @default_options [recv_timeout: 15000]
+  @default_options [recv_timeout: 60000]
 
   defstruct [:api_token, :api_secret, :options]
 
@@ -19,20 +19,34 @@ defmodule ExTicketUtils.Client do
   end
 
   def get_request(creds, path, options \\ []) do
-    make_request(:get, creds, path, options) |> handle_response
+    make_request(:get, creds, path, options) |> handle_response(options)
   end
 
   def post_request(creds, path, options \\ []) do
-    make_request(:post, creds, path, options) |> handle_response
+    make_request(:post, creds, path, options) |> handle_response(options)
   end
 
   def put_request(creds, path, options \\ []) do
-    make_request(:put, creds, path, options) |> handle_response
+    make_request(:put, creds, path, options) |> handle_response(options)
   end
 
-  defp handle_response(response) do
+  defp handle_response(response, options) do
+    version = Keyword.get(options, :version)
+
     case response do
-      {:ok, %Response{body: body, status_code: 200}} -> Poison.decode(body)
+      {:ok, %Response{body: body, status_code: 200}} ->
+        body = Poison.decode!(body)
+
+        case version do
+          "v2" ->
+            status = Map.get(body, "Status", "Success")
+
+            case status do
+              "Success" -> {:ok, body}
+              "Failure" -> {:error, :bad_request, response}
+            end
+          "v3" -> {:ok, body}
+        end
       {:ok, response = %Response{status_code: 400}} ->
         case Poison.decode(response.body) do
           {:ok, json} ->
@@ -74,7 +88,8 @@ defmodule ExTicketUtils.Client do
         url: url,
         signed_path: path,
         body: body,
-        headers: headers
+        headers: headers,
+        options: options
       ]
     end
 
@@ -82,7 +97,6 @@ defmodule ExTicketUtils.Client do
   end
 
   defp process_params(params, :get, path) do
-
     path = cond do
       Enum.empty?(params)  -> path
       URI.parse(path).query -> path <> "&" <> URI.encode_query(params)
@@ -91,14 +105,8 @@ defmodule ExTicketUtils.Client do
 
     {"", path}
   end
-
-  defp process_params(params, :post, path) do
-    {{:form, Enum.into(params, [])}, path}
-  end
-
-  defp process_params(params, :put, path) do
-    {Poison.encode!(params), path}
-  end
+  defp process_params(params, :post, path), do: {Poison.encode!(params), path}
+  defp process_params(params, :put, path), do: {Poison.encode!(params), path}
 
   defp build_url(path, version) do
     url = Application.get_env(:ex_ticket_utils, :url, nil)
@@ -145,7 +153,8 @@ defmodule ExTicketUtils.Client do
     Keyword.merge([
       "X-Signature": signature,
       "X-Token": api_token,
-      "Content-Type": "application/json",
+      "Content-Type": "application/json; charset=utf-8",
+      "Connection": "Keep-Alive",
       "Accept": "application/json"
     ], extras)
   end
