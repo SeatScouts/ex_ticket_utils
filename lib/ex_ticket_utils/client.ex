@@ -34,19 +34,7 @@ defmodule ExTicketUtils.Client do
     version = Keyword.get(options, :version)
 
     case response do
-      {:ok, %Response{body: body, status_code: 200}} ->
-        body = Poison.decode!(body)
-
-        case version do
-          "v2" ->
-            status = Map.get(body, "Status", "Success")
-
-            case status do
-              "Success" -> {:ok, body}
-              "Failure" -> {:error, :bad_request, response}
-            end
-          "v3" -> {:ok, body}
-        end
+      {:ok, %Response{body: body, status_code: 200}} -> Poison.decode(body)
       {:ok, response = %Response{status_code: 400}} ->
         case Poison.decode(response.body) do
           {:ok, json} ->
