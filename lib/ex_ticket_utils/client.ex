@@ -19,20 +19,18 @@ defmodule ExTicketUtils.Client do
   end
 
   def get_request(creds, path, options \\ []) do
-    make_request(:get, creds, path, options) |> handle_response(options)
+    make_request(:get, creds, path, options) |> handle_response()
   end
 
   def post_request(creds, path, options \\ []) do
-    make_request(:post, creds, path, options) |> handle_response(options)
+    make_request(:post, creds, path, options) |> handle_response()
   end
 
   def put_request(creds, path, options \\ []) do
-    make_request(:put, creds, path, options) |> handle_response(options)
+    make_request(:put, creds, path, options) |> handle_response()
   end
 
-  defp handle_response(response, options) do
-    version = Keyword.get(options, :version)
-
+  defp handle_response(response) do
     case response do
       {:ok, %Response{body: body, status_code: 200}} -> Poison.decode(body)
       {:ok, response = %Response{status_code: 400}} ->
@@ -102,14 +100,14 @@ defmodule ExTicketUtils.Client do
 
     case url do
       nil ->
-        host = case is_sandbox do
-          true ->
+        host = cond do
+          is_sandbox == true || is_sandbox == "true" ->
             case version do
               "v1" -> "apiv2.ticketutilssandbox.com"
               "v2" -> "apiv2.ticketutilssandbox.com"
               _ -> "api.ticketutilssandbox.com"
             end
-          false ->
+          is_sandbox == false || is_sandbox == "false" ->
             case version do
               "v2" -> "api.ticketutils.net"
               _ -> "api.ticketutils.com"
