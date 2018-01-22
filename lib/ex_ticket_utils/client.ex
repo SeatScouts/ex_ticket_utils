@@ -109,6 +109,7 @@ defmodule ExTicketUtils.Client do
             end
           is_sandbox == false || is_sandbox == "false" ->
             case version do
+              "v1" -> "api.ticketutils.net"
               "v2" -> "api.ticketutils.net"
               _ -> "api.ticketutils.com"
             end
