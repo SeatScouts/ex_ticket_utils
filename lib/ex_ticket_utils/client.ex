@@ -39,9 +39,10 @@ defmodule ExTicketUtils.Client do
             message = json["Message"]
 
             if message do
-              case Regex.match?(~r/Invalid/, message) do
-                true -> {:ok, %{"Items" => [], "Records" => 0, "TotalPages" => 1}}
-                false -> {:error, :bad_request, response}
+              cond do
+                Regex.match?(~r/Invalid/, message) -> {:ok, %{"Items" => [], "Records" => 0, "TotalPages" => 1}}
+                Regex.match?(~r/Result not found/, message) -> {:error, :not_found, response}
+                true -> {:error, :bad_request, response}
               end
             else
               {:error, :bad_request, response}
