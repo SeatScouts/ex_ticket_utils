@@ -19,18 +19,18 @@ defmodule ExTicketUtils.Client do
   end
 
   def get_request(creds, path, options \\ []) do
-    make_request(:get, creds, path, options) |> handle_response()
+    make_request(:get, creds, path, options) |> handle_response(options)
   end
 
   def post_request(creds, path, options \\ []) do
-    make_request(:post, creds, path, options) |> handle_response()
+    make_request(:post, creds, path, options) |> handle_response(options)
   end
 
   def put_request(creds, path, options \\ []) do
-    make_request(:put, creds, path, options) |> handle_response()
+    make_request(:put, creds, path, options) |> handle_response(options)
   end
 
-  defp handle_response(response) do
+  defp handle_response(response, options) do
     case response do
       {:ok, %Response{body: body, status_code: 200}} -> Poison.decode(body)
       {:ok, response = %Response{status_code: 400}} ->
@@ -39,10 +39,17 @@ defmodule ExTicketUtils.Client do
             message = json["Message"]
 
             if message do
-              cond do
-                Regex.match?(~r/Invalid/, message) -> {:ok, %{"Items" => [], "Records" => 0, "TotalPages" => 1}}
-                Regex.match?(~r/Result not found/, message) -> {:ok, %{"Items" => [], "Records" => 0, "TotalPages" => 1}}
-                true -> {:error, :bad_request, response}
+              case options[:version] do
+                "v2" ->
+                  cond do
+                    Regex.match?(~r/Result not found/, message) -> {:ok, %{"Items" => [], "Pagination" => %{"CurrentPage" => 1, "TotalPages" => 1, "TotalResults" => 0}}}
+                    true -> {:error, :bad_request, response}
+                  end
+                "v3" ->
+                  cond do
+                    Regex.match?(~r/Invalid/, message) -> {:ok, %{"Items" => [], "Records" => 0, "TotalPages" => 1}}
+                    true -> {:error, :bad_request, response}
+                  end
               end
             else
               {:error, :bad_request, response}
