@@ -59,6 +59,7 @@ defmodule ExTicketUtils.Client do
       {:ok, response = %Response{status_code: 403}} -> {:error, :forbidden, response}
       {:ok, response = %Response{status_code: 404}} -> {:error, :not_found, response}
       {:ok, response = %Response{status_code: 429}} -> {:error, :too_many_requests, response}
+      {:ok, response = %Response{status_code: 409}} -> {:error, :conflict, response}
       {:ok, response = %Response{status_code: 500}} -> {:error, :internal_server_error, response}
       {:error, raw = %HTTPoison.Error{reason: reason}} -> {:error, reason, raw}
       {_, response} -> {:error, :unknown, response}
