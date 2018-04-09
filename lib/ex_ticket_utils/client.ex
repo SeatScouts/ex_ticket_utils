@@ -41,6 +41,8 @@ defmodule ExTicketUtils.Client do
             case options[:version] do
               "v2" ->
                 cond do
+                  # TU returns back 400 sometimes for 404s - we rewrite these so that they
+                  # just come back as an empty set
                   Regex.match?(~r/Result not found/, message) ->
                     {:ok,
                      %{
