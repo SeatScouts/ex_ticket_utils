@@ -12,11 +12,14 @@ defmodule ExTicketUtils.Pos.Invoices do
         path = "/POS/Invoices"
 
         get_request(client, path, client_options)
+
       "v3" ->
-        path = "POS/Sales/Invoices/Search"
+        path = "/POS/Sales/Invoices/Search"
 
         post_request(client, path, client_options)
-      _ -> raise "Unknown api version"
+
+      _ ->
+        raise "Unknown api version"
     end
   end
 end
