@@ -2,12 +2,14 @@ defmodule ExTicketUtils.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :ex_ticket_utils,
-     version: "0.5.6",
-     elixir: "~> 1.4",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :ex_ticket_utils,
+      version: "0.6.0",
+      elixir: "~> 1.4",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
+    ]
   end
 
   # Configuration for the OTP application
@@ -34,7 +36,8 @@ defmodule ExTicketUtils.Mixfile do
     [
       {:httpoison, "~> 0.13.0"},
       {:poison, "~> 2.0"},
-      {:bypass, "~> 0.7", only: :test}
+      {:bypass, "~> 0.7", only: :test},
+      {:mix_test_watch, "~> 0.5", only: :dev, runtime: false}
     ]
   end
 end
