@@ -62,4 +62,28 @@ defmodule ExTicketUtils.Pos.Inventory do
       _ -> raise "Unknown api version"
     end
   end
+
+  def mass_update(client, params, options \\ []) do
+    version = Keyword.get(options, :version, "v3")
+
+    case version do
+      "v2" ->
+        client_options = merge_options(client, params, version, options)
+
+        path = "/POS/Inventory/UpdateTickets"
+
+        post_request(client, path, client_options)
+      "v3" ->
+        verify_params(params, ["Id"])
+
+        {lot_id, params} = Map.pop(params, "Id")
+
+        client_options = merge_options(client, params, version, options)
+
+        path = "/POS/Tickets/#{lot_id}/SellPrice"
+
+        put_request(client, path, client_options)
+      _ -> raise "Unknown api version"
+    end
+  end
 end
