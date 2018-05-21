@@ -21,6 +21,21 @@ defmodule ExTicketUtils.Pos.Inventory do
 
   end
 
+  def my_events(client, params, options \\ []) do
+    version = Keyword.get(options, :version, "v1")
+
+    client_options = merge_options(client, params, version, options)
+
+    case version do
+      "v1" ->
+        path = "/POS/Inventory/EventsWithMyTickets"
+
+        get_request(client, path, client_options)
+      _ -> raise "Unknown api version"
+    end
+
+  end
+
   def set_broadcast(client, params, options \\ []) do
     version = Keyword.get(options, :version, "v3")
 
