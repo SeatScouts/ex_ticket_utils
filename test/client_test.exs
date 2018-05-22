@@ -56,6 +56,18 @@ defmodule ExTicketUtils.ClientTest do
     {:error, :bad_request, _response} = Client.get_request(client, path)
   end
 
+  test "can handle 401 errors", %{server: server, creds: creds} do
+    path = "/foo?test=12345"
+
+    Bypass.expect_once(server, fn conn ->
+      Plug.Conn.resp(conn, 401, "")
+    end)
+
+    {:ok, client} = Client.create(creds)
+
+    {:error, :invalid_credentials, _response} = Client.get_request(client, path)
+  end
+
   test "can handle 403 errors", %{server: server, creds: creds} do
     path = "/foo?test=12345"
 
