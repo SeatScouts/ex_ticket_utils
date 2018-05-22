@@ -66,6 +66,9 @@ defmodule ExTicketUtils.Client do
             {:error, :bad_request, %{"reason" => reason}}
         end
 
+      {:ok, response = %Response{status_code: 401}} ->
+        {:error, :invalid_credentials, response}
+
       {:ok, response = %Response{status_code: 403}} ->
         {:error, :forbidden, response}
 
