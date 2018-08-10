@@ -42,7 +42,7 @@ defmodule ExTicketUtils.EventCatalog.CategoriesTest do
       Plug.Conn.resp(conn, 200, encoded)
     end)
 
-    {:ok, response} = ExTicketUtils.EventCatalog.Categories.fetch(client, %{"id" => "abcd-efgh"})
+    {:ok, response} = ExTicketUtils.EventCatalog.Categories.fetch(client, %{"id" => "acid-jazz-rulez"})
 
     %{"Items" => [%{"CategoryId" => category_id}]} = response
 
