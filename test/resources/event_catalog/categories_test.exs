@@ -25,10 +25,10 @@ defmodule ExTicketUtils.EventCatalog.CategoriesTest do
       {:ok, encoded} =
         Poison.encode(%{
           "Items" => [%{
-            "CategoryId" => "589abe30-8e9b-4d44-ba6f-b0a8eb1112f8",
+            "CategoryId" => "acid-jazz-rulez",
             "Name" => "Acid Jazz",
             "Parent" => %{
-              "CategoryId" => "fe8e8ddd-ab92-42da-b3e7-b5b115d31b77",
+              "CategoryId" => "whos-your-daddy",
               "Name" => "Concert"
             }
           }],
@@ -46,6 +46,6 @@ defmodule ExTicketUtils.EventCatalog.CategoriesTest do
 
     %{"Items" => [%{"CategoryId" => category_id}]} = response
 
-    assert category_id == "abcd-efgh"
+    assert category_id == "acid-jazz-rulez"
   end
 end
