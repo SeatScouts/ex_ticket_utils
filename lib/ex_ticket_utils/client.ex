@@ -33,10 +33,10 @@ defmodule ExTicketUtils.Client do
   defp handle_response(response, options) do
     case response do
       {:ok, %Response{body: body, status_code: 200}} ->
-        Poison.decode(body)
+        Jason.decode(body)
 
       {:ok, response = %Response{status_code: 400}} ->
-        case Poison.decode(response.body) do
+        case Jason.decode(response.body) do
           {:ok, %{"Message" => message}} ->
             case options[:version] do
               "v2" ->
@@ -128,8 +128,8 @@ defmodule ExTicketUtils.Client do
     {"", path}
   end
 
-  defp process_params(params, :post, path), do: {Poison.encode!(params), path}
-  defp process_params(params, :put, path), do: {Poison.encode!(params), path}
+  defp process_params(params, :post, path), do: {Jason.encode!(params), path}
+  defp process_params(params, :put, path), do: {Jason.encode!(params), path}
 
   defp build_url(path, version) do
     url = Application.get_env(:ex_ticket_utils, :url, nil)

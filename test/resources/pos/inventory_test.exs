@@ -23,7 +23,7 @@ defmodule ExTicketUtils.Pos.InventoryTest do
       assert "POST" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
+        Jason.encode(%{
           "Items" => [%{"EventId" => "abcd-efgh"}],
           "Meta" => nil,
           "Page" => 1,
@@ -48,7 +48,7 @@ defmodule ExTicketUtils.Pos.InventoryTest do
       assert "PUT" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
+        Jason.encode(%{
           "Items" => [%{"EventId" => "abcd-efgh"}],
           "Meta" => nil,
           "Page" => 1,
@@ -73,7 +73,7 @@ defmodule ExTicketUtils.Pos.InventoryTest do
       assert "PUT" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
+        Jason.encode(%{
           "Items" => [%{"EventId" => "abcd-efgh"}],
           "Meta" => nil,
           "Page" => 1,

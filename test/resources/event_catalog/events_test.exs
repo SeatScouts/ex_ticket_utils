@@ -23,7 +23,7 @@ defmodule ExTicketUtils.EventCatalog.EventsTest do
       assert "GET" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
+        Jason.encode(%{
           "Items" => [%{"EventId" => "abcd-efgh"}],
           "Meta" => nil,
           "Page" => 1,
