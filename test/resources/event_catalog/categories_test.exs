@@ -23,15 +23,17 @@ defmodule ExTicketUtils.EventCatalog.CategoriesTest do
       assert "GET" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
-          "Items" => [%{
-            "CategoryId" => "acid-jazz-rulez",
-            "Name" => "Acid Jazz",
-            "Parent" => %{
-              "CategoryId" => "whos-your-daddy",
-              "Name" => "Concert"
+        Jason.encode(%{
+          "Items" => [
+            %{
+              "CategoryId" => "acid-jazz-rulez",
+              "Name" => "Acid Jazz",
+              "Parent" => %{
+                "CategoryId" => "whos-your-daddy",
+                "Name" => "Concert"
+              }
             }
-          }],
+          ],
           "Pagination" => %{
             "CurrentPage" => 1,
             "TotalPages" => 3,
@@ -42,7 +44,8 @@ defmodule ExTicketUtils.EventCatalog.CategoriesTest do
       Plug.Conn.resp(conn, 200, encoded)
     end)
 
-    {:ok, response} = ExTicketUtils.EventCatalog.Categories.fetch(client, %{"id" => "acid-jazz-rulez"})
+    {:ok, response} =
+      ExTicketUtils.EventCatalog.Categories.fetch(client, %{"id" => "acid-jazz-rulez"})
 
     %{"Items" => [%{"CategoryId" => category_id}]} = response
 

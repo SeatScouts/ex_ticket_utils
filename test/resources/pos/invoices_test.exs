@@ -23,7 +23,7 @@ defmodule ExTicketUtils.Pos.InvoicesTest do
       assert "GET" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
+        Jason.encode(%{
           "Items" => [%{"EventId" => "abcd-efgh"}],
           "Meta" => nil,
           "Page" => 1,
@@ -47,7 +47,7 @@ defmodule ExTicketUtils.Pos.InvoicesTest do
       assert "POST" == conn.method
 
       {:ok, encoded} =
-        Poison.encode(%{
+        Jason.encode(%{
           "Items" => [%{"EventId" => "abcd-efgh"}],
           "Meta" => nil,
           "Page" => 1,
