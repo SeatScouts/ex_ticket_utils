@@ -181,6 +181,6 @@ defmodule ExTicketUtils.Client do
   def encode_request(creds, path) do
     %{api_secret: api_secret} = creds
 
-    :crypto.hmac(:sha256, api_secret, path) |> Base.encode64()
+    :crypto.mac(:hmac, :sha256, api_secret, user.email) |> Base.encode16()
   end
 end
